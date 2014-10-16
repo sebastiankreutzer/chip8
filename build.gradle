@@ -1,0 +1,30 @@
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'eclipse'
+
+repositories {
+    mavenCentral()
+    
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.1'
+}
+
+project.ext.mainClassName = "de.sebastiankreutzer.chip8.Main"
+
+task run(dependsOn: classes, type: JavaExec){
+	main = project.mainClassName
+	classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+   
+}
+
+task dist(type: Jar) {
+    from files(sourceSets.main.output.classesDir)
+    from files(sourceSets.main.output.resourcesDir)
+    from {configurations.compile.collect {zipTree(it)}}
+    manifest {
+        attributes 'Main-Class': project.mainClassName
+    }
+}
