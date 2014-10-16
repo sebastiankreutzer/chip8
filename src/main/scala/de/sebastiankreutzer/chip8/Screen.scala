@@ -4,6 +4,10 @@ import java.awt.Graphics
 import javax.swing.JPanel
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 
 class Screen extends JPanel(true) with Surface {
 
@@ -16,52 +20,60 @@ class Screen extends JPanel(true) with Surface {
   val img = new BufferedImage(ScreenWidth, ScreenHeight, BufferedImage.TYPE_INT_RGB)
   val data = img.getRaster().getDataBuffer().asInstanceOf[DataBufferInt].getData()
 
-  override def drawSprite(x: Int, y: Int, sprite: Array[Byte]) {
-//    println("*********")
+  override def drawSprite(x: Int, y: Int, sprite: Array[Byte]): Boolean = {
+    //    println("Sprite at " + x + ", " + y)
+    var pixelUnset = false
     for (i <- 0 until sprite.length) {
-      for (j <- 0 until 8) {
-        if ((sprite(i) & (1 << j)) >> j == 1) {        
-          togglePixel(x + j, y + i)
-//          printf("x")
-        }else {
-//          printf(" ")
+      for (j <- 0 to 7) {
+        if (((sprite(i) & (1 << (7 - j))) >> (7 - j) & 1) == 1) {
+          if (togglePixel(x + j, y + i))
+            pixelUnset = true
         }
       }
-//      println()
     }
-//    println("*********")
-    repaint();
+    repaint()
+    pixelUnset
   }
 
-  def togglePixel(x: Int, y: Int) {
+  def togglePixel(x: Int, y: Int): Boolean = {
+    var pixelUnset = false
     if (x >= 0 && y >= 0 && x < ScreenWidth && y < ScreenHeight) {
-      if (data(y * ScreenWidth + x) == White)
+      if (data(y * ScreenWidth + x) == White) {
         data(y * ScreenWidth + x) = Black
-      else
+        pixelUnset = true
+      } else {
         data(y * ScreenWidth + x) = White
+      }
     }
+    pixelUnset
   }
 
   override def clear() {
-    for (i <- 0 to data.length) data(i) = Black
+    for (i <- 0 until data.length) data(i) = Black
     repaint()
   }
 
   override def paint(g: Graphics) {
     g.drawImage(img, 0, 0, getWidth, getHeight, this)
   }
-  
-  override def repaint() {
-    super.repaint()
-//    println("Now printing screen:")
-//    println("********************")
-//    for (i <- 0 until ScreenHeight) {
-//      for(j <- 0 until ScreenWidth) {
-//        printf(if (data(i * ScreenWidth + j) == Black) "x" else " ")
-//      }
-//      println()
-//    }
-//    println("********************")
+
+  def drawDebug() {
+    for (x <- 0 until ScreenWidth)
+      printf("*")
+    println()
+    for (y <- 0 until ScreenHeight) {
+      printf("*")
+      for (x <- 0 until ScreenWidth) {
+        if (data(y * ScreenWidth + x) == White)
+          printf("-")
+        else
+          printf("x")
+      }
+      println("*")
+    }
+    for (x <- 0 until ScreenWidth)
+      printf("*")
+    println()
   }
 
 }

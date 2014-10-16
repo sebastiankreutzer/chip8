@@ -1,14 +1,14 @@
 package de.sebastiankreutzer.chip8
 
 import scala.util.Random
+import java.awt.Toolkit
 
-class Chip8VM(surface: Surface) extends Decoder {
+class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder {
 
   val FPS = 60.0f
 
   val ram = new Array[Byte](4096)
-  
-  
+
   var pc = 0x200
 
   val registers = new Array[Byte](16)
@@ -22,16 +22,28 @@ class Chip8VM(surface: Surface) extends Decoder {
   var soundTimer = 0
 
   val random = new Random()
-  
-  val ZeroSprite = 0
-  
-  ram(ZeroSprite) = 0xF
-  ram(ZeroSprite+ 1) = 0x9
-  ram(ZeroSprite + 2) = 0x9
-  ram(ZeroSprite + 3) = 0x9
-  ram(ZeroSprite + 4) = 0xF
 
-  
+  val DefaultSprites = Array(
+    Array(0xF, 0x9, 0x9, 0x9, 0xF), Array(0x2, 0x6, 0x2, 0x2, 0x7),
+    Array(0xF, 0x1, 0xF, 0x8, 0xF), Array(0xF, 0x1, 0xF, 0x1, 0xF),
+    Array(0x9, 0x9, 0xF, 0x1, 0x1), Array(0xF, 0x8, 0xF, 0x1, 0xF),
+    Array(0xF, 0x8, 0xF, 0x9, 0xF), Array(0xF, 0x1, 0x2, 0x4, 0x4),
+    Array(0xF, 0x9, 0xF, 0x9, 0xF), Array(0xF, 0x9, 0xF, 0x1, 0xF),
+    Array(0xF, 0x9, 0xF, 0x9, 0x9), Array(0xE, 0x9, 0xE, 0x9, 0xE),
+    Array(0xF, 0x8, 0x8, 0x8, 0xF), Array(0xE, 0x9, 0x9, 0x9, 0xE),
+    Array(0xF, 0x8, 0xF, 0x8, 0xF), Array(0xF, 0x8, 0xF, 0x8, 0x8))
+
+  val SpriteStartAddress = 0
+
+  private var tmp = SpriteStartAddress
+
+  for (j <- 0 until DefaultSprites.length) {
+    for (k <- 0 until DefaultSprites(j).length) {
+      ram(tmp) = DefaultSprites(j)(k).toByte
+      tmp += 1
+    }
+  }
+
   def loadRom(rom: Rom) {
     val code = rom.getByteArray
     System.arraycopy(code, 0, ram, 0x200, code.length)
@@ -47,24 +59,30 @@ class Chip8VM(surface: Surface) extends Decoder {
       time = System.nanoTime()
       if (time - last >= timeout) {
         delayTimer = math.max(0, delayTimer - 1)
-        soundTimer = math.max(0, soundTimer - 1)
-        if (delayTimer == 0) {
-          println("delay is 0")
+        if (soundTimer > 0) {
+          soundTimer -= 1
+          if (soundTimer == 0)
+            Toolkit.getDefaultToolkit().beep()
         }
         last = time
       }
-//      println("Next instruction at " + pc.toHexString + ": " + load(pc).toHexString  +  load(pc + 1).toHexString)
+      //println("Next instruction at " + pc.toHexString + ": " + load(pc).toHexString  +  load(pc + 1).toHexString)
       decode(pc, load(pc), load(pc + 1))
       pc += 2
+      Thread.sleep(2);
     }
   }
 
-  def getRegister(register: Int): Int = {
+  def getRegisterByte(register: Int): Byte = {
     if (register < 0 || register >= registers.length) {
       error(register + " is not a valid register")
       0
     }
-    registers(register).toInt
+    registers(register)
+  }
+
+  def getRegister(register: Int): Int = {
+    getRegisterByte(register).toInt
   }
 
   def setRegister(register: Int, value: Int) = {
@@ -109,7 +127,7 @@ class Chip8VM(surface: Surface) extends Decoder {
   }
 
   override def ret() {
-	sp -= 1
+    sp -= 1
     pc = stack(sp)
     println("Returned from subroutine")
   }
@@ -126,13 +144,21 @@ class Chip8VM(surface: Surface) extends Decoder {
   }
 
   override def jeq(reg: Int, value: Int) {
-    if (getRegister(reg) == value)
+    if (getRegister(reg) == value) {
+      println(getRegister(reg) + " = " + value + " -> skip")
       pc += 2
+    } else {
+      println(getRegister(reg) + " != " + value + " -> no skip")
+    }
   }
 
   override def jneq(reg: Int, value: Int) {
-    if (getRegister(reg) != value)
+    if (getRegister(reg) != value) {
       pc += 2
+      println("unequal -> skip")
+    } else {
+      println("equal -> no skip")
+    }
   }
 
   override def jeqr(reg1: Int, reg2: Int) {
@@ -142,10 +168,13 @@ class Chip8VM(surface: Surface) extends Decoder {
 
   override def set(reg: Int, value: Int) {
     setRegister(reg, value)
+    println("set V" + reg + " to " + getRegister(reg))
   }
 
   override def add(reg: Int, value: Int) {
+    print(getRegister(reg) + " + " + value + " = ")
     setRegister(reg, getRegister(reg) + value)
+    println(getRegister(reg) + " to V" + reg)
   }
 
   override def setr(reg1: Int, reg2: Int) {
@@ -165,11 +194,26 @@ class Chip8VM(surface: Surface) extends Decoder {
   }
 
   override def addr(reg1: Int, reg2: Int) {
-    setRegister(reg1, getRegister(reg1) + getRegister(reg2))
+    print(getRegister(reg1) + " + " + getRegister(reg2) + " = ")
+    val result = getRegister(reg1) + getRegister(reg2)
+    setRegister(reg1, result)
+
+    val carry = checkOverflowOnAdd(getRegisterByte(reg1), getRegisterByte(reg2))
+
+    setRegister(15, if (carry) 1 else 0)
+
+    println(getRegister(reg1) + " to V" + reg1)
+
+    if (carry)
+      println("carry!")
   }
 
   override def sub(reg1: Int, reg2: Int) {
     setRegister(reg1, getRegister(reg1) - getRegister(reg2))
+    val carry = ((getRegisterByte(reg2) & 0xFF) > (getRegisterByte(reg1) & 0xFF))
+    if (carry)
+      println("carry!")
+    setRegister(15, if (carry) 1 else 0)
   }
 
   override def shr(reg1: Int, reg2: Int) {
@@ -178,6 +222,10 @@ class Chip8VM(surface: Surface) extends Decoder {
 
   override def subb(reg1: Int, reg2: Int) {
     setRegister(reg1, getRegister(reg2) - getRegister(reg1))
+    val carry = ((getRegisterByte(reg1) & 0xFF) > (getRegisterByte(reg2) & 0xFF))
+    if (carry)
+      println("carry!")
+    setRegister(15, if (carry) 1 else 0)
   }
 
   override def shl(reg1: Int, reg2: Int) {
@@ -185,8 +233,12 @@ class Chip8VM(surface: Surface) extends Decoder {
   }
 
   override def jneqr(reg1: Int, reg2: Int) {
-    if (getRegister(reg1) != getRegister(reg2))
+    if (getRegister(reg1) != getRegister(reg2)) {
       pc += 2
+      println("unequal -> skip")
+    } else {
+      println("equal -> no skip")
+    }
   }
 
   override def seti(value: Int) {
@@ -199,6 +251,7 @@ class Chip8VM(surface: Surface) extends Decoder {
 
   override def rand(reg: Int, value: Int) {
     setRegister(reg, random.nextInt() & value)
+    println("rand: " + (random.nextInt() & value))
   }
 
   override def draw(reg1: Int, reg2: Int, value: Int) {
@@ -212,16 +265,25 @@ class Chip8VM(surface: Surface) extends Decoder {
       output.append(sprite(j).toHexString)
       output += ' '
     }
-    surface.drawSprite(x, y, sprite)
-//    println("draw sprite: " + output)
+    val pixelsUnset = surface.drawSprite(x, y, sprite)
+    if (pixelsUnset) {
+      setRegister(15, 1)
+    } else {
+      setRegister(15, 0)
+    }
+    println("draw h=" + height + ", x=" + x + ", y=" + y + ", pixelsUnset=" + pixelsUnset)
   }
 
   override def jkey(reg: Int) {
-
+    val key = getRegister(reg)
+    if (inputProcessor.isKeyDown(key))
+      pc += 2
   }
 
   override def jnkey(reg: Int) {
-
+    val key = getRegister(reg)
+    if (!inputProcessor.isKeyDown(key))
+      pc += 2
   }
 
   override def getdelay(reg: Int) {
@@ -229,7 +291,9 @@ class Chip8VM(surface: Surface) extends Decoder {
   }
 
   override def waitkey(reg: Int) {
-
+    println("Waiting for key")
+    val key = getRegister(reg)
+    while (!inputProcessor.isKeyDown(key)) {}
   }
 
   override def setdelay(reg: Int) {
@@ -246,10 +310,7 @@ class Chip8VM(surface: Surface) extends Decoder {
 
   override def spritei(reg: Int) {
     val x = getRegister(reg) & 0xF
-    i = x match {
-      case 0 => ZeroSprite
-      case _ => ZeroSprite
-    }
+    i = SpriteStartAddress + 5 * x
     println("draw " + x)
   }
 
@@ -283,6 +344,23 @@ class Chip8VM(surface: Surface) extends Decoder {
       setRegister(j, load(i + j))
     }
     i += reg + 1
+  }
+
+  def checkOverflowOnAdd(a: Byte, b: Byte): Boolean = {
+    if (a > b) checkOverflowOnAdd(b, a)
+    else {
+      if (a < 0) {
+        if (b < 0) {
+          if (Byte.MinValue - b <= a) false
+          else true
+        }
+        false
+      } else {
+        if (a <= Byte.MaxValue - b) false
+        else true
+      }
+
+    }
   }
 
 }

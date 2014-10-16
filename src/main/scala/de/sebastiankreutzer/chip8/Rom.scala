@@ -5,8 +5,9 @@ import scala.io.Source
 import java.nio.charset.CodingErrorAction
 import java.nio.file.Paths
 import java.nio.file.Files
+import java.io.File
 
-class Rom(file: String) {
+class Rom(path : String) {
 
 //  implicit val codec = Codec("UTF-8")
 //  codec.onMalformedInput(CodingErrorAction.REPLACE)
@@ -15,7 +16,7 @@ class Rom(file: String) {
 //  val code = source.map(_.toByte).toArray
 //  source.close()
   
-  val code = Files.readAllBytes(Paths.get(file))
+  val code = Files.readAllBytes(Paths.get(path))
 
   def getByteArray() : Array[Byte] = code
 

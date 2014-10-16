@@ -19,7 +19,7 @@ trait Decoder {
       case 1 => jmp(opCode.address)
       case 2 => call(opCode.address)
       case 3 => jeq(msb.lo, lsb.toInt)
-      case 4 => jeq(msb.lo, lsb.toInt)
+      case 4 => jneq(msb.lo, lsb.toInt)
       case 5 => jeqr(msb.lo, lsb.hi)
       case 6 => set(msb.lo, lsb.toInt)
       case 7 => add(msb.lo, lsb.toInt)
