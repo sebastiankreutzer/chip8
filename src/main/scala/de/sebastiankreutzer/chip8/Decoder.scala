@@ -1,7 +1,7 @@
 package de.sebastiankreutzer.chip8
 
-import de.sebastiankreutzer.chip8.Utils.ExtendedByte
-import de.sebastiankreutzer.chip8.Utils.ExtendedInt
+import de.sebastiankreutzer.chip8.Utils.Chip8Byte
+import de.sebastiankreutzer.chip8.Utils.Chip8Int
 
 trait Decoder {
   
