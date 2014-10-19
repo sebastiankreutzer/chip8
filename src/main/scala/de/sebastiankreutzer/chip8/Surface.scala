@@ -6,4 +6,6 @@ trait Surface {
 
   def clear()
   
+  def playSound()
+  
 }

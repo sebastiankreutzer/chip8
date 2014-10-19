@@ -1,11 +1,7 @@
 package de.sebastiankreutzer.chip8
 
-import scala.io.Codec
-import scala.io.Source
-import java.nio.charset.CodingErrorAction
-import java.nio.file.Paths
 import java.nio.file.Files
-import java.io.File
+import java.nio.file.Paths
 
 class Rom(path : String) {
 
@@ -18,6 +14,10 @@ class Rom(path : String) {
   
   val code = Files.readAllBytes(Paths.get(path))
 
-  def getByteArray() : Array[Byte] = code
+  def reset: VMState = {
+  	val state = new VMState
+  	System.arraycopy(code, 0, state.ram, 0x200, code.length)
+  	state
+  } 
 
 }

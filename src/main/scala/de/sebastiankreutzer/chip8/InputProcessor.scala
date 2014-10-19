@@ -4,4 +4,6 @@ trait InputProcessor {
   
   def isKeyDown(key : Int): Boolean
   
+  def getPressedKey() : Int
+  
 }

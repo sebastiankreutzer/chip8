@@ -12,6 +12,7 @@ class Configs(file: File) {
 
   var keyBindings = Map[Int, Int]()
   var reverseKeyBindings = Map[Int, Int]()
+  var frequency = 100.0f
   
   var romDir = new File(".")
 
@@ -29,7 +30,9 @@ class Configs(file: File) {
       setKeyBinding(i, configs.getProperty("key" + i).toInt)
     }
     
-    setRomDir(new File(configs.getProperty("romDir")))
+    romDir = new File(configs.getProperty("romDir"))
+    
+    frequency = configs.getProperty("frequency").toFloat
 
     println(configs)
   }
@@ -39,11 +42,12 @@ class Configs(file: File) {
       configs.setProperty("key" + i, keyBindings(i).toString)
     }
     configs.setProperty("romDir", romDir.getPath)
+    configs.setProperty("frequency", frequency.toString)
     configs.store(new FileOutputStream(file), "Config file for chip8 emulator")
   }
 
   def reset() {
-    setRomDir(new File("."))
+    romDir = new File(".")
     setKeyBinding(0x0, KeyEvent.VK_A)
     setKeyBinding(0x1, KeyEvent.VK_S)
     setKeyBinding(0x2, KeyEvent.VK_D)
@@ -80,12 +84,6 @@ class Configs(file: File) {
       keyBindings += (id -> key)
       reverseKeyBindings += (key -> id)
     }
-  }
-  
-  def getRomDir() : File = romDir
-  
-  def setRomDir(dir: File) {
-	  romDir = dir
   }
 
 }

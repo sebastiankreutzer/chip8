@@ -5,7 +5,7 @@ class Dissasembler extends Decoder {
   var sourceCode = ""
 
   def dissasemble(rom: Rom): String = {
-    val code = rom.getByteArray
+    val code = rom.code
     for (i <- 0 until code.length by 2) {
       sourceCode += i + ": "
       decode(i, code(i), code(i + 1))
