@@ -15,12 +15,15 @@ class VMState {
 
 	var delayTimer = 0
 	var soundTimer = 0
+	
+	var frameBuffer = new FrameBuffer(Main.ScreenWidth, Main.ScreenHeight)
 
 	def this(state: VMState) = {
 		this()
 		System.arraycopy(state.ram, 0, this.ram, 0, state.ram.length)
 		System.arraycopy(state.registers, 0, this.registers, 0, state.registers.length)
 		System.arraycopy(state.stack, 0, this.stack, 0, state.stack.length)
+		this.frameBuffer = new FrameBuffer(state.frameBuffer)
 		this.i = state.i
 		this.pc = state.pc
 		this.sp = state.sp

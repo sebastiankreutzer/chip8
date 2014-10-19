@@ -3,17 +3,19 @@ package de.sebastiankreutzer.chip8
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
+
+import de.sebastiankreutzer.chip8.ColorScheme
+import javax.swing.ButtonGroup
 import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JMenu
 import javax.swing.JMenuBar
 import javax.swing.JMenuItem
-import java.awt.event.WindowListener
 import javax.swing.JRadioButtonMenuItem
-import javax.swing.ButtonGroup
-import de.sebastiankreutzer.chip8.ColorScheme
+import javax.swing.KeyStroke
 
 class UI extends JFrame with InputProcessor with KeyListener {
 
@@ -125,6 +127,7 @@ class UI extends JFrame with InputProcessor with KeyListener {
 			Main.loadState()
 		}
 	})
+	loadItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0))
 	stateMenu.add(loadItem)
 
 	val saveItem = new JMenuItem("Save")
@@ -133,6 +136,7 @@ class UI extends JFrame with InputProcessor with KeyListener {
 			Main.saveState()
 		}
 	})
+	saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0))
 	stateMenu.add(saveItem)
 
 	val slotMenu = new JMenu("Select Slot")
@@ -144,6 +148,7 @@ class UI extends JFrame with InputProcessor with KeyListener {
 				Main.selectSlot(i)
 			}
 		})
+		slotItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.getExtendedKeyCodeForChar(i + 48), 0))
 		slotGroup.add(slotItem)
 		slotMenu.add(slotItem)
 	}

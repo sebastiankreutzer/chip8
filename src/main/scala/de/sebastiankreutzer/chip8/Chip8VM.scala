@@ -38,7 +38,7 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 
 			var unprocessedTime = 0.0f
 
-			surface.clear()
+			surface.updateScreen(state.frameBuffer)
 
 			while (running) {
 
@@ -81,7 +81,7 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 
 	def loadState(state: VMState) {
 		this.state = state
-		surface.clear()
+		surface.updateScreen(state.frameBuffer)
 		if (!running) {
 			start()
 		}
@@ -190,7 +190,8 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 	}
 
 	override def clear() {
-		surface.clear()
+		state.frameBuffer.clear()
+		surface.updateScreen(state.frameBuffer)
 	}
 
 	override def ret() {
@@ -338,12 +339,9 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 			output.append(sprite(j).toHexString)
 			output += ' '
 		}
-		val pixelsUnset = surface.drawSprite(x, y, sprite)
-		if (pixelsUnset) {
-			setRegister(15, 1)
-		} else {
-			setRegister(15, 0)
-		}
+		val pixelsUnset = state.frameBuffer.drawSprite(x, y, sprite)
+		setRegister(15, if (pixelsUnset) 1 else 0)
+		surface.updateScreen(state.frameBuffer)
 		//		println("draw h=" + height + ", x=" + x + ", y=" + y + ", pixelsUnset=" + pixelsUnset)
 	}
 

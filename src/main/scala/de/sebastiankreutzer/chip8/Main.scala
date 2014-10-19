@@ -6,6 +6,9 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 
 object Main extends App {
+	
+	val ScreenWidth = 64
+	val ScreenHeight = 32
 
 	val ConfigFile = new File("src/main/resources/configs.properties")
 	val configs = new Configs(ConfigFile)
@@ -89,7 +92,7 @@ object Main extends App {
 	}
 	
 	def loadState() {
-		vm.loadState(saveStates(saveSlot))
+		vm.loadState(new VMState(saveStates(saveSlot)))
 		println("Loaded state " + saveSlot)
 	}
 
