@@ -8,82 +8,88 @@ import java.io.FileOutputStream
 
 class Configs(file: File) {
 
-  var configs = new Properties()
+	var configs = new Properties()
 
-  var keyBindings = Map[Int, Int]()
-  var reverseKeyBindings = Map[Int, Int]()
-  var frequency = 100.0f
-  
-  var romDir = new File(".")
+	var keyBindings = Map[Int, Int]()
+	var reverseKeyBindings = Map[Int, Int]()
+	var frequency = 100.0f
+	var colorScheme = ColorScheme.BlackAndWhite
 
-  load()
+	var romDir = new File(".")
 
-  def load() {
-    if (!file.exists()) {
-      reset()
-      store()
-    }
+	load()
 
-    configs.load(new FileInputStream(file))
+	def load() {
+		if (!file.exists()) {
+			reset()
+			store()
+		}
 
-    for (i <- 0 to 15) {
-      setKeyBinding(i, configs.getProperty("key" + i).toInt)
-    }
-    
-    romDir = new File(configs.getProperty("romDir"))
-    
-    frequency = configs.getProperty("frequency").toFloat
+		configs.load(new FileInputStream(file))
 
-    println(configs)
-  }
+		for (i <- 0 to 15) {
+			setKeyBinding(i, configs.getProperty("key" + i).toInt)
+		}
 
-  def store() {
-    for (i <- 0 to 15) {
-      configs.setProperty("key" + i, keyBindings(i).toString)
-    }
-    configs.setProperty("romDir", romDir.getPath)
-    configs.setProperty("frequency", frequency.toString)
-    configs.store(new FileOutputStream(file), "Config file for chip8 emulator")
-  }
+		romDir = new File(configs.getProperty("romDir"))
 
-  def reset() {
-    romDir = new File(".")
-    setKeyBinding(0x0, KeyEvent.VK_A)
-    setKeyBinding(0x1, KeyEvent.VK_S)
-    setKeyBinding(0x2, KeyEvent.VK_D)
-    setKeyBinding(0x3, KeyEvent.VK_F)
-    setKeyBinding(0x4, KeyEvent.VK_G)
-    setKeyBinding(0x5, KeyEvent.VK_H)
-    setKeyBinding(0x6, KeyEvent.VK_J)
-    setKeyBinding(0x7, KeyEvent.VK_K)
-    setKeyBinding(0x8, KeyEvent.VK_L)
-    setKeyBinding(0x9, KeyEvent.VK_Y)
-    setKeyBinding(0xA, KeyEvent.VK_X)
-    setKeyBinding(0xB, KeyEvent.VK_C)
-    setKeyBinding(0xC, KeyEvent.VK_V)
-    setKeyBinding(0xD, KeyEvent.VK_B)
-    setKeyBinding(0xE, KeyEvent.VK_N)
-    setKeyBinding(0xF, KeyEvent.VK_M)
-  }
+		frequency = configs.getProperty("frequency").toFloat
 
-  def getKeyBinding(id: Int): Int = {
-    if (keyBindings contains id)
-      keyBindings(id)
-    else KeyEvent.VK_UNDEFINED
-  }
+		colorScheme = new ColorScheme(configs.getProperty("color1").toInt, configs.getProperty("color2").toInt, configs.getProperty("colorSchemeName"))
 
-  def getReverseKeyBinding(keyCode: Int): Int = {
-    if (reverseKeyBindings contains keyCode)
-      reverseKeyBindings(keyCode)
-    else
-      -1
-  }
+		println(configs)
+	}
 
-  def setKeyBinding(id: Int, key: Int) {
-    if (id >= 0 && id < 16) {
-      keyBindings += (id -> key)
-      reverseKeyBindings += (key -> id)
-    }
-  }
+	def store() {
+		for (i <- 0 to 15) {
+			configs.setProperty("key" + i, keyBindings(i).toString)
+		}
+		configs.setProperty("romDir", romDir.getPath)
+		configs.setProperty("frequency", frequency.toString)
+		configs.setProperty("color1", colorScheme.color1.toString)
+		configs.setProperty("color2", colorScheme.color2.toString)
+		configs.setProperty("colorSchemeName", colorScheme.name)
+		configs.store(new FileOutputStream(file), "Config file for chip8 emulator")
+	}
+
+	def reset() {
+		romDir = new File(".")
+		setKeyBinding(0x0, KeyEvent.VK_A)
+		setKeyBinding(0x1, KeyEvent.VK_S)
+		setKeyBinding(0x2, KeyEvent.VK_D)
+		setKeyBinding(0x3, KeyEvent.VK_F)
+		setKeyBinding(0x4, KeyEvent.VK_G)
+		setKeyBinding(0x5, KeyEvent.VK_H)
+		setKeyBinding(0x6, KeyEvent.VK_J)
+		setKeyBinding(0x7, KeyEvent.VK_K)
+		setKeyBinding(0x8, KeyEvent.VK_L)
+		setKeyBinding(0x9, KeyEvent.VK_Y)
+		setKeyBinding(0xA, KeyEvent.VK_X)
+		setKeyBinding(0xB, KeyEvent.VK_C)
+		setKeyBinding(0xC, KeyEvent.VK_V)
+		setKeyBinding(0xD, KeyEvent.VK_B)
+		setKeyBinding(0xE, KeyEvent.VK_N)
+		setKeyBinding(0xF, KeyEvent.VK_M)
+	}
+
+	def getKeyBinding(id: Int): Int = {
+		if (keyBindings contains id)
+			keyBindings(id)
+		else KeyEvent.VK_UNDEFINED
+	}
+
+	def getReverseKeyBinding(keyCode: Int): Int = {
+		if (reverseKeyBindings contains keyCode)
+			reverseKeyBindings(keyCode)
+		else
+			-1
+	}
+
+	def setKeyBinding(id: Int, key: Int) {
+		if (id >= 0 && id < 16) {
+			keyBindings += (id -> key)
+			reverseKeyBindings += (key -> id)
+		}
+	}
 
 }

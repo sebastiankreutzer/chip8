@@ -16,41 +16,13 @@ import javax.sound.sampled.FloatControl
 
 class Screen extends JPanel(true) with Surface {
 
-	val Black = 0x000000
-	val White = 0xFFFFFF
-
-	var scheme = new ColorScheme(0x000000, 0xFFFFFF, "Black & White")
+	var scheme = Main.configs.colorScheme
 
 	val img = new BufferedImage(Main.ScreenWidth, Main.ScreenHeight, BufferedImage.TYPE_INT_RGB)
 	val data = img.getRaster().getDataBuffer().asInstanceOf[DataBufferInt].getData()
 
-	//	override def drawSprite(x: Int, y: Int, sprite: Array[Byte]): Boolean = {
-	//		//    println("Sprite at " + x + ", " + y)
-	//		var pixelUnset = false
-	//		for (i <- 0 until sprite.length) {
-	//			for (j <- 0 to 7) {
-	//				if (((sprite(i) & (1 << (7 - j))) >> (7 - j) & 1) == 1) {
-	//					if (togglePixel(x + j, y + i))
-	//						pixelUnset = true
-	//				}
-	//			}
-	//		}
-	//		repaint()
-	//		pixelUnset
-	//	}
-	//
-	//	def togglePixel(x: Int, y: Int): Boolean = {
-	//		var pixelUnset = false
-	//		if (x >= 0 && y >= 0 && x < ScreenWidth && y < ScreenHeight) {
-	//			if (data(y * ScreenWidth + x) == scheme.color2) {
-	//				data(y * ScreenWidth + x) = scheme.color1
-	//				pixelUnset = true
-	//			} else {
-	//				data(y * ScreenWidth + x) = scheme.color2
-	//			}
-	//		}
-	//		pixelUnset
-	//	}
+	val defaultScreen = "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111000000011111111111111111111111111000111100000111111111111111111011111100111111111111111111111111011001001111001111111111111111101100000010000000000111000111001101100011000010001111111111111110110000001000000000011100011100110110001100001000111111111111111011000001011110011000101100001000011000110000100011111111111111101111110001100110011000110000100001100000111100111111111111111110110000000110011001100011000010000110001100001000111111111111111011000000011001100110001100001000011000110000100011111111111111101100000101100110011000110000100001100011000010001111111111111110111111000110011001100000111100000110000011110000111111111111111000000000000000000000010000000000000001000000001111111111111111100000000000000000000001000000000000000100000000111111111111111111000000001000100010000111000000111000011100000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110001010101000100011110001011101010101110001000100010001111111111011101010101010101111011100100101010111010110110101010111111111101110001010001000100100010101010101011100011011010100011111111110111010101011101011110111011101010101110101101101010011111111111000101010101110001111000101110100010001010110110001010111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+	for (i <- 0 until data.length) data(i) = if (defaultScreen.charAt(i) == '0') scheme.color1 else scheme.color2
 
 	def updateScreen(fb: FrameBuffer) {
 		for (i <- 0 until fb.data.length) {
@@ -67,33 +39,33 @@ class Screen extends JPanel(true) with Surface {
 		repaint()
 	}
 
-//	override def clear() {
-//		for (i <- 0 until data.length) data(i) = scheme.color1
-//		repaint()
-//	}
+	//	override def clear() {
+	//		for (i <- 0 until data.length) data(i) = scheme.color1
+	//		repaint()
+	//	}
 
 	override def paint(g: Graphics) {
 		g.drawImage(img, 0, 0, getWidth, getHeight, this)
 	}
 
-//	def drawDebug() {
-//		for (x <- 0 until ScreenWidth)
-//			printf("*")
-//		println()
-//		for (y <- 0 until ScreenHeight) {
-//			printf("*")
-//			for (x <- 0 until ScreenWidth) {
-//				if (data(y * ScreenWidth + x) == White)
-//					printf("-")
-//				else
-//					printf("x")
-//			}
-//			println("*")
-//		}
-//		for (x <- 0 until ScreenWidth)
-//			printf("*")
-//		println()
-//	}
+	//	def drawDebug() {
+	//		for (x <- 0 until ScreenWidth)
+	//			printf("*")
+	//		println()
+	//		for (y <- 0 until ScreenHeight) {
+	//			printf("*")
+	//			for (x <- 0 until ScreenWidth) {
+	//				if (data(y * ScreenWidth + x) == White)
+	//					printf("-")
+	//				else
+	//					printf("x")
+	//			}
+	//			println("*")
+	//		}
+	//		for (x <- 0 until ScreenWidth)
+	//			printf("*")
+	//		println()
+	//	}
 
 	def playSound() {
 		val clip = AudioSystem.getClip()

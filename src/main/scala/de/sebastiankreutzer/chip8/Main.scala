@@ -1,16 +1,26 @@
 package de.sebastiankreutzer.chip8
 
-import java.io.File
-import javax.swing.SwingUtilities
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.io.File
+import javax.swing.SwingUtilities
+import java.net.URLDecoder
+import javax.swing.UIManager
 
 object Main extends App {
+	
+	val Title = "Emul8"
+	
+	val BasePath = URLDecoder.decode(getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+	
+	val BaseDir = if (new File(BasePath).isDirectory()) new File(BasePath) else new File(BasePath).getParentFile 
+	
+	println("BaseDir: " + BaseDir)
 	
 	val ScreenWidth = 64
 	val ScreenHeight = 32
 
-	val ConfigFile = new File("src/main/resources/configs.properties")
+	val ConfigFile = new File(BaseDir + "/configs.properties")
 	val configs = new Configs(ConfigFile)
 
 	var ui: UI = null
@@ -23,6 +33,7 @@ object Main extends App {
 
 	SwingUtilities.invokeLater(new Runnable() {
 		def run() {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName)
 			ui = new UI()
 			ui.addWindowListener(new WindowAdapter() {
 				override def windowClosing(e: WindowEvent) {

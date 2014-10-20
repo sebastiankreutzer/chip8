@@ -197,7 +197,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 	override def ret() {
 		state.sp -= 1
 		state.pc = state.stack(state.sp)
-		println("Returned from subroutine")
 	}
 
 	override def jmp(addr: Int) {
@@ -208,24 +207,17 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 		state.stack(state.sp) = state.pc
 		state.sp += 1
 		state.pc = addr - 2
-		println("Calling subroutine " + state.pc)
 	}
 
 	override def jeq(reg: Int, value: Int) {
 		if (getRegister(reg) == value) {
-//			println(getRegister(reg) + " = " + value + " -> skip")
 			state.pc += 2
-		} else {
-//			println(getRegister(reg) + " != " + value + " -> no skip")
 		}
 	}
 
 	override def jneq(reg: Int, value: Int) {
 		if (getRegister(reg) != value) {
 			state.pc += 2
-//			println("unequal -> skip")
-		} else {
-//			println("equal -> no skip")
 		}
 	}
 
@@ -236,13 +228,10 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 
 	override def set(reg: Int, value: Int) {
 		setRegister(reg, value)
-//		println("set V" + reg + " to " + getRegister(reg))
 	}
 
 	override def add(reg: Int, value: Int) {
-//		print(getRegister(reg) + " + " + value + " = ")
 		setRegister(reg, getRegister(reg) + value)
-//		println(getRegister(reg) + " to V" + reg)
 	}
 
 	override def setr(reg1: Int, reg2: Int) {
@@ -262,7 +251,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 	}
 
 	override def addr(reg1: Int, reg2: Int) {
-//		print(getRegister(reg1) + " + " + getRegister(reg2) + " = ")
 
 		val v1 = getRegister(reg1)
 		val v2 = getRegister(reg2)
@@ -274,19 +262,11 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 
 		setRegister(15, if (carry) 1 else 0)
 
-//		println(getRegister(reg1) + " to V" + reg1)
-
-//		if (carry)
-//			println("carry!")
 	}
 
 	override def sub(reg1: Int, reg2: Int) {
 		val carry = ((getRegisterByte(reg2) & 0xFF) > (getRegisterByte(reg1) & 0xFF))
-		print(getRegister(reg1) + " - " + getRegister(reg2) + " = ")
 		setRegister(reg1, getRegister(reg1) - getRegister(reg2))
-		println(getRegister(reg1))
-		if (carry)
-			println("carry!")
 		setRegister(15, if (carry) 0 else 1)
 	}
 
@@ -297,8 +277,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 	override def subb(reg1: Int, reg2: Int) {
 		val carry = ((getRegisterByte(reg1) & 0xFF) > (getRegisterByte(reg2) & 0xFF))
 		setRegister(reg1, getRegister(reg2) - getRegister(reg1))
-		if (carry)
-			println("carry!")
 		setRegister(15, if (carry) 0 else 1)
 	}
 
@@ -309,9 +287,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 	override def jneqr(reg1: Int, reg2: Int) {
 		if (getRegister(reg1) != getRegister(reg2)) {
 			state.pc += 2
-//			println("unequal -> skip")
-		} else {
-//			println("equal -> no skip")
 		}
 	}
 
@@ -325,7 +300,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 
 	override def rand(reg: Int, value: Int) {
 		setRegister(reg, random.nextInt() & value)
-		println("rand: " + (random.nextInt() & value))
 	}
 
 	override def draw(reg1: Int, reg2: Int, value: Int) {
@@ -342,7 +316,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 		val pixelsUnset = state.frameBuffer.drawSprite(x, y, sprite)
 		setRegister(15, if (pixelsUnset) 1 else 0)
 		surface.updateScreen(state.frameBuffer)
-		//		println("draw h=" + height + ", x=" + x + ", y=" + y + ", pixelsUnset=" + pixelsUnset)
 	}
 
 	override def jkey(reg: Int) {
@@ -386,7 +359,6 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 	override def spritei(reg: Int) {
 		val x = getRegister(reg) & 0xF
 		state.i = state.SpriteStartAddress + 5 * x
-//		println("draw " + x)
 	}
 
 	override def bcd(reg: Int) {
@@ -405,7 +377,7 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 		store(state.i, bcd(0))
 		store(state.i + 1, bcd(1))
 		store(state.i + 2, bcd(2))
-		println("bcd of " + n + " is " + bcd(0) + ", " + bcd(1) + ", " + bcd(2)) 
+		//println("bcd of " + n + " is " + bcd(0) + ", " + bcd(1) + ", " + bcd(2))
 	}
 
 	override def push(reg: Int) {
@@ -421,22 +393,5 @@ class Chip8VM(surface: Surface, inputProcessor: InputProcessor) extends Decoder 
 		}
 		state.i += reg + 1
 	}
-
-//	def checkOverflowOnAdd(a: Byte, b: Byte): Boolean = {
-//		if (a > b) checkOverflowOnAdd(b, a)
-//		else {
-//			if (a < 0) {
-//				if (b < 0) {
-//					if (Byte.MinValue - b <= a) false
-//					else true
-//				}
-//				false
-//			} else {
-//				if (a <= Byte.MaxValue - b) false
-//				else true
-//			}
-//
-//		}
-//	}
 
 }
